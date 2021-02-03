@@ -1,0 +1,51 @@
+name: deployBaseEnvironment
+
+# Run this workflow on demande via the github console
+on: workflow_dispatch
+
+jobs:
+  deployBaseEnvironment:
+    name: deploy environment
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # retrieve git project used to install products
+      - name: clone project ds-workspace
+        env:
+          GITLABSSHKEY: ${{ secrets.GITLABSSHKEY }}
+        run: |
+          eval $(ssh-agent)
+          ssh-add - <<< "${GITLABSSHKEY}"
+          mkdir ~/.ssh
+          ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
+          git clone git@gitlab.com:owkin/ds-workspace.git
+      # connection to gcloud and k8s cluster deployment
+      - name: terraform deployment
+        env:
+          GCLOUD_CREDENTIALS: ${{ secrets.GCLOUD_CREDENTIALS }}
+        run: |
+          echo $GCLOUD_CREDENTIALS > /tmp/gcloudCredentials
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcloudCredentials
+          gcloud auth activate-service-account --key-file /tmp/gcloudCredentials
+          gcloud projects list
+          cd ds-workspace
+          git checkout investigation/automatic_deployment
+          cd common-cluster
+          export TF_VAR_project_id=connectors-preview
+          export TF_VAR_region=europe-west1
+          terraform init
+          terraform apply -auto-approve
+      # install a dns server to provide human readable addresses to deployed services
+      - name: install traefik
+        run: |
+          gcloud auth activate-service-account --key-file /tmp/gcloudCredentials
+          gcloud container clusters get-credentials --project connectors-preview --region europe-west1-b connectors-stunnect-env
+          cd traefik
+          kubectl apply --namespace default -f reverse-proxy-crd.yaml
+          kubectl apply --namespace default -f reverse-proxy-rbac.yaml
+          kubectl apply --namespace default -f reverse-proxy.yaml

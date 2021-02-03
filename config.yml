@@ -1,0 +1,11 @@
+containerImages:
+  studio:
+    frontend:
+      version: 1.0.0
+    backend:
+      version: master
+organisations:
+  orga1:
+    name: Orga1
+  orga2:
+    name: Orga2
