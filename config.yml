@@ -9,3 +9,9 @@ organisations:
     name: Orga1
   orga2:
     name: Orga2
+channels:
+  channel1:
+    type: 2-orgs-policy-any
+    organisations:
+      orga1: chanOrga1
+      orga2: chanOrga2

@@ -1,0 +1,33 @@
+name: add or update a channel
+# Run this workflow on demande via the github console
+on: 
+  workflow_dispatch:
+    inputs:
+      # gets channel name from user at launch (mandatory)
+      channelName:
+        description: 'Channel name'     
+        required: true
+      # gets environment from user at launch (still useless atm)
+      environment:
+        description: 'Environment (prod, dev, test, ...)'     
+        required: false
+
+jobs:
+  deployChannel:
+    - name: clone project SubstraFoundation/hlf-k8s
+      env:
+        GITLABSSHKEY: ${{ secrets.GITLABSSHKEY }}
+      run: |
+        eval $(ssh-agent)
+        ssh-add - <<< "${GITLABSSHKEY}"
+        mkdir ~/.ssh
+        ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
+        cd ..
+        git clone git@github.com:SubstraFoundation/hlf-k8s.git
+    # install connect
+    - name: connect deploy
+      run: |
+        cp -r 2-orgs-policy-any/* hlf-k8s
+        # helm repo add substra https://substrafoundation.github.io/charts/
+        # helm repo update
+        helm upgrade --install hlf  substra/hlf-k8s --namespace ${channelName} ./hlf-k8s
