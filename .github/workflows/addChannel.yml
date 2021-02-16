@@ -1,4 +1,4 @@
-name: add or update a channel
+name: channel
 # Run this workflow on demande via the github console
 on: 
   workflow_dispatch:
