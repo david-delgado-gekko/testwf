@@ -14,7 +14,7 @@ on:
 
 jobs:
   deployChannel:
-    - name: clone project SubstraFoundation/hlf-k8s
+    - name: clone project SubstraFoundation hlf-k8s
       env:
         GITLABSSHKEY: ${{ secrets.GITLABSSHKEY }}
       run: |
