@@ -15,23 +15,21 @@ on:
 jobs:
   deployChannel:
     runs-on: ubuntu-latest
-    env:
-      organisationName: ${{ github.event.inputs.organisationName }}
     steps:
-      - name: clone project SubstraFoundation hlf-k8s
-        env:
-          GITLABSSHKEY: ${{ secrets.GITLABSSHKEY }}
-        run: |
-          eval $(ssh-agent)
-          ssh-add - <<< "${GITLABSSHKEY}"
-          mkdir ~/.ssh
-          ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-          cd ..
-          git clone git@github.com:SubstraFoundation/hlf-k8s.git
-      # install connect
-      - name: connect deploy
-        run: |
-          cp -r 2-orgs-policy-any/* hlf-k8s
-          # helm repo add substra https://substrafoundation.github.io/charts/
-          # helm repo update
-          helm upgrade --install hlf  substra/hlf-k8s --namespace ${channelName} ./hlf-k8s
+    - name: clone project SubstraFoundation hlf-k8s
+      env:
+        GITLABSSHKEY: ${{ secrets.GITLABSSHKEY }}
+      run: |
+        eval $(ssh-agent)
+        ssh-add - <<< "${GITLABSSHKEY}"
+        mkdir ~/.ssh
+        ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
+        cd ..
+        git clone git@github.com:SubstraFoundation/hlf-k8s.git
+    # install connect
+    - name: connect deploy
+      run: |
+        cp -r 2-orgs-policy-any/* hlf-k8s
+        # helm repo add substra https://substrafoundation.github.io/charts/
+        # helm repo update
+        helm upgrade --install hlf  substra/hlf-k8s --namespace ${channelName} ./hlf-k8s
